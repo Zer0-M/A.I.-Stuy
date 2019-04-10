@@ -1,18 +1,16 @@
+import pprint
+pp = pprint.PrettyPrinter(width=28, compact=True,depth=3)
 F=open("data.txt","r")
 data=F.readlines()[1:]
 data=[x.strip("\n") for x in data]
-print(data)
 dat=[]
 for line in data:
     each=line.split(",")
-    datum=[]
     for e in each:
         if e =="_":
-            datum.append(0)
+            dat.append(0)
         else:
-            datum.append(int(e))
-    dat.append(datum)
-print(dat)
+            dat.append(int(e))
 Cliques=[[0,1,2,3,4,5,6,7,8],\
 [9,10,11,12,13,14,15,16,17],\
 [18,19,20,21,22,23,24,25,26],\
@@ -41,60 +39,37 @@ Cliques=[[0,1,2,3,4,5,6,7,8],\
 [57,58,59,66,67,68,75,76,77],\
 [60,61,62,69,70,71,78,79,80]\
 ]
-def belongs(r,c):
+def belongs(i):
     cliqs=[]
-    index=r*9+c
     for c in Cliques:
-        if index in c:
+        if i in c:
             cliqs.append(c)
     return cliqs
-def possible(r,c,dat,tested):
+def possible(i,dat):
     poss=set([1,2,3,4,5,6,7,8,9])
-    cliqs=belongs(r,c)
+    cliqs=belongs(i)
     for cliq in cliqs:
         for loc in cliq:
-            if dat[int(loc/9)][int(loc%9)] in poss:
-                poss.remove(dat[int(loc/9)][int(loc%9)])
-            elif r*9+c in tested.keys() and tested[r*9+c] in poss:
-                poss.remove(tested[r*9+c])
+            if dat[loc] in poss:
+                poss.remove(dat[loc])
     return poss
-def toString(dats):
-    st=""
-    for r in dats:
-        for c in r:
-            st+=str(c)+" "
-        st+="\n"
-    return st
+
 def solve(dats):
     stateStack=[]
-    tested={}
     i=0
-    while i<9:
-        j=0
-        while j<9:
-            stateStack.append(dats)
-            if dats[i][j]==0:
-                possset=possible(i,j,dats,tested)
-                print(toString(dats))
-                print(i,j)
-                while  len(possset)==0:
-                    print(possset)
-                    print(i,j)
-                    dats=stateStack.pop()
-                    if j==0:
-                        i-=1
-                        j+=8
-                    else:
-                        j-=1
-                    possset=possible(i,j,dats,tested)
-                dats[i][j]=possset.pop()
-                if i*9+j not in tested.keys():
-                    tested[i*9+j]=[dats[i][j]]
-                else:
-                    tested[i*9+j].append(dats[i][j])
-            j+=1
+    while i<81:
+        if dats[i]==0:
+            possset=possible(i,dats)
+            while  len(possset)==0:
+                state=stateStack.pop()
+                dats=state[0]
+                possset=state[1]
+                i=state[2]
+            num=possset.pop()
+            stateStack.append((dats.copy(),possset,i))
+            dats[i]=num
         i+=1
     return dats
-print(solve(dat))
-            
+pp.pprint(solve(dat))
+          
 
