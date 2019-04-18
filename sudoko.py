@@ -1,8 +1,10 @@
-import pprint
-pp = pprint.PrettyPrinter(width=28, compact=True,depth=3)
-F=open("data.txt","r")
-data=F.readlines()[1:]
-data=[x.strip("\n") for x in data]
+#! /usr/bin/python3
+import sys
+F=open(sys.argv[1],"r")
+boards=F.readlines()
+boards=[x.strip("\n") for x in boards]
+eob=boards.index(sys.argv[3])
+data=boards[eob+1:eob+10]
 dat=[]
 for line in data:
     each=line.split(",")
@@ -53,23 +55,48 @@ def possible(i,dat):
             if dat[loc] in poss:
                 poss.remove(dat[loc])
     return poss
+def toString(dats):
+    dats=[str(x) for x in dats]
+    st=""
+    i=0
+    for dat in dats:
+        if (i+1)%9==0:
+            st+=dat+"\n"
+        else:
+            st+=dat+","
+        i+=1
+    return st
+def fillobv(dats):
+    i=0
+    while i<81:
+        possset=possible(i,dats)
+        if dats[i]==0 and len(possset)==1:
+            dats[i]=possset.pop()
+        i+=1
+    return dats
+dat=fillobv(dat)
 
 def solve(dats):
     stateStack=[]
     i=0
+    bt=0
     while i<81:
         if dats[i]==0:
             possset=possible(i,dats)
-            while  len(possset)==0:
+            while len(possset)==0:
                 state=stateStack.pop()
                 dats=state[0]
                 possset=state[1]
                 i=state[2]
+                bt+=1
             num=possset.pop()
-            stateStack.append((dats.copy(),possset,i))
+            if len(possset)>0:
+                stateStack.append((dats.copy(),possset,i))
             dats[i]=num
+            dats=fillobv(dats)
         i+=1
+    print(bt)
     return dats
-pp.pprint(solve(dat))
-          
-
+F.close()
+F=open(sys.argv[2],"w")
+F.write(toString(solve(dat)))
