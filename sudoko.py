@@ -1,8 +1,11 @@
-import pprint
-pp = pprint.PrettyPrinter(width=28, compact=True,depth=3)
-F=open("data.txt","r")
-data=F.readlines()[1:]
-data=[x.strip("\n") for x in data]
+#! /usr/bin/python3
+import sys
+import random
+F=open(sys.argv[1],"r")
+boards=F.readlines()
+boards=[x.strip("\n") for x in boards]
+eob=boards.index(sys.argv[3])
+data=boards[eob+1:eob+10]
 dat=[]
 for line in data:
     each=line.split(",")
@@ -53,23 +56,85 @@ def possible(i,dat):
             if dat[loc] in poss:
                 poss.remove(dat[loc])
     return poss
-
-def solve(dats):
-    stateStack=[]
+def toString(dats):
+    dats=[str(x) for x in dats]
+    st=""
     i=0
-    while i<81:
-        if dats[i]==0:
-            possset=possible(i,dats)
-            while  len(possset)==0:
-                state=stateStack.pop()
-                dats=state[0]
-                possset=state[1]
-                i=state[2]
-            num=possset.pop()
-            stateStack.append((dats.copy(),possset,i))
-            dats[i]=num
+    for dat in dats:
+        if (i+1)%9==0:
+            st+=dat+"\n"
+        else:
+            st+=dat+","
         i+=1
+    return st
+def possort(indices,dats):
+    indices=sorted(indices,key=(lambda x:len(possible(x,dats))))
+    return indices
+def possave(indices,dats):
+    return sum([len(possible(x,dats)) for x in indices])/9
+def specialPossort(indices,dats):
+    k=(lambda x: x+9 if x ==0 else len(possible(x,dats)))
+    print(k(indices[0]))
+def crosshatching(dats):
+    squares=Cliques[:len(Cliques)-10:-1]
+    squares=sorted(squares,key=(lambda x:len(possave(x,dats))))
+    return squares
+def solve(dats,mode):
+    bt=0
+    if mode==0:
+        stateStack=[]
+        i=0
+        indexlist=set()
+        while i<81:
+            #print(indlis)
+            indexlist.add(i)
+            if dats[i]==0:
+                possset=possible(i,dats)
+                #print(possset)
+                while len(possset)==0:
+                    bt+=1
+                    state=stateStack.pop()
+                    dats=state[0]
+                    possset=state[1]
+                    i=state[2]
+                
+                num=possset.pop()
+                if len(possset)>0:
+                    stateStack.append((dats.copy(),possset,i))
+                dats[i]=num
+            i+=1
+    if mode==1:
+        stateStack=[]
+        indlis=[x for x in range(0,len(dats)) if dats[x]==0]
+        indlis=possort(indlis,dats)
+        i=0
+        indexlist=set()
+        while len(indlis)!=0:
+            indlis=possort(indlis,dats)
+            i=indlis.pop(0)
+            #print(indlis)
+            indexlist.add(i)
+            if dats[i]==0:
+                possset=possible(i,dats)
+                #print(possset)
+                while len(possset)==0:
+                    bt+=1
+                    state=stateStack.pop()
+                    dats=state[0]
+                    possset=state[1]
+                    i=state[2]
+                    indlis=state[3]
+                
+                num=possset.pop()
+                if len(possset)>0:
+                    stateStack.append((dats.copy(),possset,i,indlis))
+                dats[i]=num
+                indlis=possort(indlis,dats) 
+
+    print(bt)
     return dats
-pp.pprint(solve(dat))
+F.close()
+F=open(sys.argv[2],"w")
+F.write(toString(solve(dat,1)))
           
 
