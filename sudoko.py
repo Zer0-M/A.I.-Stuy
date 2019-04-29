@@ -1,6 +1,5 @@
 #! /usr/bin/python3
 import sys
-import random
 F=open(sys.argv[1],"r")
 boards=F.readlines()
 boards=[x.strip("\n") for x in boards]
@@ -79,6 +78,14 @@ def crosshatching(dats):
     squares=Cliques[:len(Cliques)-10:-1]
     squares=sorted(squares,key=(lambda x:len(possave(x,dats))))
     return squares
+def fillobv(dats):
+    i=0
+    while i<81:
+        possset=possible(i,dats)
+        if dats[i]==0 and len(possset)==1:
+            dats[i]=possset.pop()
+        i+=1
+    return dats
 def solve(dats,mode):
     bt=0
     if mode==0:
@@ -129,8 +136,35 @@ def solve(dats,mode):
                 if len(possset)>0:
                     stateStack.append((dats.copy(),possset,i,indlis))
                 dats[i]=num
-                indlis=possort(indlis,dats) 
-
+                indlis=possort(indlis,dats)
+    if mode == 2:
+        stateStack=[]
+        indlis=[x for x in range(0,len(dats)) if dats[x]==0]
+        indlis=possort(indlis,dats)
+        i=0
+        indexlist=set()
+        while len(indlis)!=0:
+            indlis=possort(indlis,dats)
+            i=indlis.pop(0)
+            #print(indlis)
+            indexlist.add(i)
+            if dats[i]==0:
+                possset=possible(i,dats)
+                #print(possset)
+                while len(possset)==0:
+                    bt+=1
+                    state=stateStack.pop()
+                    dats=state[0]
+                    possset=state[1]
+                    i=state[2]
+                    indlis=state[3]
+                
+                num=possset.pop()
+                if len(possset)>0:
+                    stateStack.append((dats.copy(),possset,i,indlis))
+                dats[i]=num
+                dats=fillobv(dats)
+                indlis=possort(indlis,dats)
     print(bt)
     return dats
 F.close()
